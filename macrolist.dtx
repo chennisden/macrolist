@@ -17,6 +17,8 @@
 
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{macrolist}[2021/07/09 v1.0.0 Create lists of macros and perform operations on them]
+
+\RequirePackage{pgffor}
 %</package>
 
 %<*driver>
@@ -54,11 +56,11 @@
 %
 % \iffalse
 \newcommand{\newlist}[1]{
-    \ifcsname c@macrolist@#1\endcsname
+    \ifcsname c@macrolist@list@#1\endcsname
         \PackageError{macrolist}{The list '#1' is already defined}{}
     \else
-        \newcounter{macrolist@#1}
-        \setcounter{macrolist@#1}{0}
+        \newcounter{macrolist@list@#1}
+        \setcounter{macrolist@list@#1}{0}
     \fi
 }
 % \fi
@@ -68,31 +70,26 @@
 % To add something to the list \textsf{listname}, pass in |\listadd{listname}[position]{element}|, where \textsf{position} is an optional argument. If nothing is passed in for \textsf{position}, then by default \textsf{element} will be added to the end of the list.
 %
 % \iffalse
-
-\RequirePackage{pgffor}
-
 \newcommand{\listadd}[1]{
-    \ifcsname c@macrolist@#1\endcsname
-    \else
-        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
-    \fi
-
-    \def\macro@currlist{#1}\@listadd
+    \macrolist@exists{#1}
+    \def\macrolist@currlist{#1}
+    \@listadd
 }
 %% We write \listadd this way such that the optional argument will be positioned correctly
 \newcommand{\@listadd}[2][]{
-    \stepcounter{macrolist@\macro@currlist}
+    \stepcounter{macrolist@list@\macrolist@currlist}
 
     \if\relax\detokenize{#1}\relax
-        \expandafter\def\csname macrolist@\macro@currlist\listsize{\macro@currlist}\endcsname{#2}
+        \expandafter\def\csname macrolist@list@\macrolist@currlist\listsize{\macrolist@currlist}\endcsname{#2}
     \else
-        \expandafter\ifnum\csname themacrolist@\macro@currlist\endcsname=#1
-            \expandafter\def\csname macrolist@\macro@currlist\listsize{\macro@currlist}\endcsname{#2}
+        \expandafter\ifnum\csname themacrolist@list@\macrolist@currlist\endcsname=#1
+            \expandafter\def\csname macrolist@list@\macrolist@currlist\listsize{\macrolist@currlist}\endcsname{#2}
         \else
-            \foreach \macrolist@index in {\listsize{\macro@currlist}, ...,\the\numexpr #1+1\relax} {
-                \global\expandafter\let\csname macrolist@\macro@currlist\macrolist@index\expandafter\endcsname\csname macrolist@\macro@currlist\the\numexpr\macrolist@index-1\relax\endcsname
+            \macrolist@inbounds{\macrolist@currlist}{#1}
+            \foreach \macrolist@index in {\listsize{\macrolist@currlist}, ...,\the\numexpr #1+1\relax} {
+                \global\expandafter\let\csname macrolist@list@\macrolist@currlist\macrolist@index\expandafter\endcsname\csname macrolist@list@\macrolist@currlist\the\numexpr\macrolist@index-1\relax\endcsname
             }
-            \expandafter\def\csname macrolist@\macro@currlist#1\endcsname{#2}
+            \expandafter\def\csname macrolist@list@\macrolist@currlist#1\endcsname{#2}
         \fi
     \fi
 }
@@ -106,20 +103,8 @@
 %
 % \iffalse
 \newcommand{\listelement}[2]{
-    \ifcsname c@macrolist@#1\endcsname
-    \else
-        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
-    \fi
-
-    \if\relax\detokenize{#2}\relax
-        \PackageError{macrolist}{No number has been passed into \protect\listelement}{Pass in a number to the second argument of \protect\listelement.}
-    \fi
-
-    \ifnum#2>\numexpr\csname themacrolist@#1\endcsname\relax
-        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of \protect\listelement\space is out of the bounds of list '#1'.}
-    \fi
-
-    \csname macrolist@#1#2\endcsname
+    \macrolist@inbounds{#1}{#2}
+    \csname macrolist@list@#1#2\endcsname
 }
 % \fi
 %
@@ -132,20 +117,8 @@
 %
 % \iffalse
 \newcommand{\protectedlistelement}[2]{
-    \ifcsname c@macrolist@#1\endcsname
-    \else
-        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
-    \fi
-
-    \if\relax\detokenize{#2}
-        \PackageError{macrolist}{No number has been passed into \protect\listelement}{Pass in a number to the second argument of \protect\listelement.}
-    \fi
-
-    \ifnum#2>\numexpr\csname themacrolist@#1\endcsname\relax
-        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of \protect\listelement\space is out of the bounds of list '#1'.}
-    \fi
-
-    \expandafter\protect\csname macrolist@#1#2\endcsname
+    \macrolist@inbounds{#1}{#2}
+    \expandafter\protect\csname macrolist@list@#1#2\endcsname
 }
 % \fi
 %
@@ -155,43 +128,23 @@
 %
 % \iffalse
 \newcommand{\listdelete}[2]{
-    \ifcsname c@macrolist@#1\endcsname
-    \else
-        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
-    \fi
+    \macrolist@inbounds{#1}{#2}
 
-    \if\relax\detokenize{#2}
-        \PackageError{macrolist}{No number has been passed into \protect\listelement}{Pass in a number to the second argument of \protect\listelement.}
-    \fi
-
-    \ifnum#2>\numexpr\csname themacrolist@#1\endcsname\relax
-        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of \protect\listelement\space is out of the bounds of list '#1'.}
-    \fi
+    \addtocounter{\macrolist@list@#1}{-1}
 }
 % \fi
 %
 % \DescribeMacro{\listclear}
 %
 % \iffalse
-\newcommand{\listdelete}[2]{
-    \ifcsname c@macrolist@#1\endcsname
-    \else
-        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
-    \fi
-
-    \if\relax\detokenize{#2}
-        \PackageError{macrolist}{No number has been passed into \protect\listelement}{Pass in a number to the second argument of \protect\listelement.}
-    \fi
-
-    \ifnum#2>\numexpr\csname themacrolist@#1\endcsname\relax
-        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of \protect\listelement\space is out of the bounds of list '#1'.}
-    \fi
+\newcommand{\listclear}[2]{
+    \macrolist@inbounds{#1}{#2}
 
     \foreach \macrolist@index in {1, ..., \listsize{#1}} {
-        \expandafter\let\csname \macrolist@#1\macrolist@index\endcsname\relax
+        \expandafter\let\csname \macrolist@list@#1\macrolist@index\endcsname\relax
     }
 
-    \setcounter{macrolist@#1}{0}
+    \setcounter{macrolist@list@#1}{0}
 }
 % \fi
 %
@@ -200,7 +153,10 @@
 % To get the size of a list, write |\listsize{listname}|.
 %
 % \iffalse
-\newcommand{\listsize}[1]{\csname themacrolist@#1\endcsname}
+\newcommand{\listsize}[1]{
+    \macrolist@exists{#1}
+    \csname themacrolist@list@#1\endcsname
+}
 % \fi
 %
 % \DescribeEnvironment{listforeach}
@@ -240,6 +196,8 @@
 }
 
 \newcommand{\macrolist@listforeachaction}[1]{
+    \macrolist@exists{\macrolist@listname}
+
     \ifnum\numexpr\macrolist@start\relax>\listsize{\macrolist@listname}
         \PackageError{macrolist}{The starting index of the loop is out of the bounds of list '\macrolist@listname'}{}
     \fi
@@ -261,3 +219,35 @@
 % \begin{verbatim}
 %
 % \end{verbatim}
+%
+% \section{Implementation details}
+%
+% All internal macros are namespaced to prevent package conflicts.
+%
+% \begin{macro}{\macrolist@exists}
+% One internal macro we use is |\macrolist@exists{listname}|, which checks that \textsf{listname} exists. It throws an error otherwise.
+%
+%    \begin{macrocode}
+\newcommand{\macrolist@exists}[1]{
+    \ifcsname c@macrolist@list@#1\endcsname
+    \else
+        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
+    \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\macrolist@inbounds}
+% We use |\macrolist@inbounds{listname}{index}| to check that first, \textsf{listname} is a defined list using |\macrolist@exists|, and second, that \textsf{index} is within bounds. It throws an error otherwise.
+%    \begin{macrocode}
+\newcommand{\macrolist@inbounds}[2]{
+    \macrolist@exists{#1}
+
+    \if\relax\detokenize{#2}
+        \PackageError{macrolist}{No number has been passed into \protect\listelement}{Pass in a number to the second argument of \protect\listelement.}
+    \fi
+
+    \ifnum#2>\listsize{#1}
+        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of \protect\listelement\space is out of the bounds of list '#1'.}
+    \fi
+}
