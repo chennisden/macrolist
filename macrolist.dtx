@@ -63,19 +63,19 @@
 }
 % \fi
 %
-% \DescribeMacro{\addtolist}
+% \DescribeMacro{\listadd}
 %
-% To add something to the list \textsf{listname}, pass in |\addtolist{listname}[position]{element}|, where \textsf{position} is an optional argument. If nothing is passed in for \textsf{position}, then by default \textsf{element} will be added to the end of the list.
+% To add something to the list \textsf{listname}, pass in |\listadd{listname}[position]{element}|, where \textsf{position} is an optional argument. If nothing is passed in for \textsf{position}, then by default \textsf{element} will be added to the end of the list.
 %
 % \iffalse
 
 \RequirePackage{pgffor}
 
-\newcommand{\addtolist}[1]{
-    \def\macro@currlist{#1}\@addtolist
+\newcommand{\listadd}[1]{
+    \def\macro@currlist{#1}\@listadd
 }
-%% We write \addtolist this way such that the optional argument will be positioned correctly
-\newcommand{\@addtolist}[2][]{
+%% We write \listadd this way such that the optional argument will be positioned correctly
+\newcommand{\@listadd}[2][]{
     \stepcounter{macrolist@\macro@currlist}
 
     \if\relax\detokenize{#1}\relax
@@ -84,8 +84,8 @@
         \expandafter\ifnum\csname themacrolist@\macro@currlist\endcsname=#1
             \expandafter\def\csname macrolist@\macro@currlist\csname themacrolist@\macro@currlist\endcsname\endcsname{#2}
         \else
-            \foreach \macrolist@index in {\csname themacrolist@\macro@currlist\endcsname, ...,#1+1} {
-                \expandafter\let\csname macrolist@\macro@currlist\macrolist@index\endcsname
+            \foreach \macrolist@index in {\csname themacrolist@\macro@currlist\endcsname, ...,\the\numexpr #1+1\relax} {
+                \global\expandafter\let\csname macrolist@\macro@currlist\macrolist@index\expandafter\endcsname\csname macrolist@\macro@currlist\the\numexpr\macrolist@index-1\relax\endcsname
             }
             \expandafter\def\csname macrolist@\macro@currlist#1\endcsname{#2}
         \fi
@@ -101,7 +101,8 @@
 %
 % \iffalse
 \newcommand{\listelement}[2]{
-    \if\relax\detokenize{#1}\relax
+    \ifcsname c@macrolist@#1\endcsname
+    \else
         \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
     \fi
 
@@ -126,7 +127,8 @@
 %
 % \iffalse
 \newcommand{\protectedlistelement}[2]{
-    \if\relax\detokenize{#1}
+    \ifcsname c@macrolist@#1\endcsname
+    \else
         \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
     \fi
 
@@ -144,7 +146,13 @@
 %
 % \DescribeMacro{\listdelete}
 %
+% To delete an element in a list, write |\listdelete{listname}{index}|.
 %
+% \iffalse
+\newcommand{\listdelete}[2]{
+
+}
+% \fi
 %
 % \DescribeMacro{\listclear}
 %
@@ -160,63 +168,51 @@
 %
 % To write a for each loop, write
 % \begin{verbatim}
-%\begin{listforeach}{listname}{\element}[begin][end]
-%   We can call \element in here.
-%\end{listforeach}
+%\begin{listforeach}{listname}{\element}[begin][end]{action}
 % \end{verbatim}
 %
 %
 % Note that begin and end are optional arguments, and by default, they take the values \textsf{0} and |\listsize{listname}|. If you pass in \textsf{begin}, you must also pass in \textsf{end}.
 %
 % \iffalse
-\newenvironment{listforeach}[2]
+\newcommand{\listforeach}[2]
 {
     \def\macrolist@start{0}
     \def\macrolist@end{\listsize{#1}}
-    \@listforeachi
-
-    \ifnum\numexpr\macrolist@start\relax>\listsize{#1}
-        \PackageError{macrolist}{The starting index of the loop is out of the bounds of list '#1'}{}
-    \fi
-
-    \ifnum\numexpr\macrolist@end\relax>\listsize{#1}
-        \PackageError{macrolist}{The ending index of the loop is out of the bounds of list '#1'}{}
-    \fi
-
-    \newcount\macrolist@count
-    \ifnum\numexpr\macrolist@start\relax<\numexpr\macrolist@end\relax
-        \macrolist@count=\macrolist@start
-    \else
-        \macrolist@count=\macrolist@end
-    \fi
-    \loop
-    \let#2\csname macrolist@#1\the\macrolist@count\endcsname
-}
-{
-    \ifnum\numexpr\macrolist@start\relax<\numexpr\macrolist@end\relax
-        \advance \macrolist@count 1
-        \ifnum \macrolist@count < \numexpr\macrolist@end+1\relax
-        \repeat
-    \else
-        \advance \macrolist@count -1
-        \ifnum \macrolist@count > \numexpr\macrolist@end-1\relax
-        \repeat
-    \fi
+    \def\macrolist@listname{#1}
+    \def\macrolist@element#2
+    \macrolist@listforeachi
+    \macrolist@listforeachaction
 }
 
-\newcommand{\@listforeachi}[1][]{
+\newcommand{\macrolist@listforeachi}[1][]{
     \if\relax\detokenize{#1}\relax
     \else
-        \@listforeachii
+        \macrolist@listforeachii
     \fi
 }
 
-\newcommand{\@listforeachii}[1][]{
+\newcommand{\macrolist@listforeachii}[1][]{
     \if\relax\detokenize{#1}\relax
         \PackageError{macrolist}{You must either pass in both a starting and ending position or neither}{}
     \else
         \def\macrolist@end{#1}
     \fi
+}
+
+\newcommand{\macrolist@listforeachaction}[1]{
+    \ifnum\numexpr\macrolist@start\relax>\listsize{\macrolist@listname}
+        \PackageError{macrolist}{The starting index of the loop is out of the bounds of list '\macrolist@listname'}{}
+    \fi
+
+    \ifnum\numexpr\macrolist@end\relax>\listsize{\macrolist@listname}
+        \PackageError{macrolist}{The ending index of the loop is out of the bounds of list '\macrolist@listname'}{}
+    \fi
+
+    \foreach \macrolist@index in {\macrolist@start, ..., \macrolist@end} {
+        \expandafter\let\csname \macrolist@element\expandafter\endcsname\csname macrolist@\macrolist@listname\the\macrolist@count\endcsname
+        #1
+    }
 }
 % \fi
 %
