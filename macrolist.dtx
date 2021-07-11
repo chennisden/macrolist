@@ -72,6 +72,11 @@
 \RequirePackage{pgffor}
 
 \newcommand{\listadd}[1]{
+    \ifcsname c@macrolist@#1\endcsname
+    \else
+        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
+    \fi
+
     \def\macro@currlist{#1}\@listadd
 }
 %% We write \listadd this way such that the optional argument will be positioned correctly
@@ -79,12 +84,12 @@
     \stepcounter{macrolist@\macro@currlist}
 
     \if\relax\detokenize{#1}\relax
-        \expandafter\def\csname macrolist@\macro@currlist\csname themacrolist@\macro@currlist\endcsname\endcsname{#2}
+        \expandafter\def\csname macrolist@\macro@currlist\listsize{\macro@currlist}\endcsname{#2}
     \else
         \expandafter\ifnum\csname themacrolist@\macro@currlist\endcsname=#1
-            \expandafter\def\csname macrolist@\macro@currlist\csname themacrolist@\macro@currlist\endcsname\endcsname{#2}
+            \expandafter\def\csname macrolist@\macro@currlist\listsize{\macro@currlist}\endcsname{#2}
         \else
-            \foreach \macrolist@index in {\csname themacrolist@\macro@currlist\endcsname, ...,\the\numexpr #1+1\relax} {
+            \foreach \macrolist@index in {\listsize{\macro@currlist}, ...,\the\numexpr #1+1\relax} {
                 \global\expandafter\let\csname macrolist@\macro@currlist\macrolist@index\expandafter\endcsname\csname macrolist@\macro@currlist\the\numexpr\macrolist@index-1\relax\endcsname
             }
             \expandafter\def\csname macrolist@\macro@currlist#1\endcsname{#2}
@@ -150,11 +155,45 @@
 %
 % \iffalse
 \newcommand{\listdelete}[2]{
+    \ifcsname c@macrolist@#1\endcsname
+    \else
+        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
+    \fi
 
+    \if\relax\detokenize{#2}
+        \PackageError{macrolist}{No number has been passed into \protect\listelement}{Pass in a number to the second argument of \protect\listelement.}
+    \fi
+
+    \ifnum#2>\numexpr\csname themacrolist@#1\endcsname\relax
+        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of \protect\listelement\space is out of the bounds of list '#1'.}
+    \fi
 }
 % \fi
 %
 % \DescribeMacro{\listclear}
+%
+% \iffalse
+\newcommand{\listdelete}[2]{
+    \ifcsname c@macrolist@#1\endcsname
+    \else
+        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
+    \fi
+
+    \if\relax\detokenize{#2}
+        \PackageError{macrolist}{No number has been passed into \protect\listelement}{Pass in a number to the second argument of \protect\listelement.}
+    \fi
+
+    \ifnum#2>\numexpr\csname themacrolist@#1\endcsname\relax
+        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of \protect\listelement\space is out of the bounds of list '#1'.}
+    \fi
+
+    \foreach \macrolist@index in {1, ..., \listsize{#1}} {
+        \expandafter\let\csname \macrolist@#1\macrolist@index\endcsname\relax
+    }
+
+    \setcounter{macrolist@#1}{0}
+}
+% \fi
 %
 % \DescribeMacro{\listsize}
 %
