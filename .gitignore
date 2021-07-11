@@ -1,0 +1,6 @@
+# Remove tex-generated files
+*.sty
+*.log
+*.aux
+*.idx
+*.glo

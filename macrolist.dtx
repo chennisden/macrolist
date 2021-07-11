@@ -1,0 +1,228 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 2021 Dennis Chen <proofprogram@gmail.com>
+%
+% This file may be distributed and/or modified under
+% the conditions the LaTeX Project Public License (LPPL),
+% either version 1.3 of this license or (at your option)
+% any later version. The latest version of this license
+% can be found in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+% \fi
+%
+% \iffalse
+%<*package>
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{macrolist}[2021/07/09 v1.0.0 Create lists of macros and perform operations on them]
+%</package>
+
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{macrolist}
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\begin{document}
+    \DocInput{scrambledenvs.dtx}
+    \PrintIndex
+\end{document}
+%</driver>
+% \fi
+% \changes{v1.0.0}{2021/07/01}{Initial version}
+%
+% \GetFileInfo{macrolist.sty}
+%
+% \title{\textsf{macrolist} -- Create lists of macros and manipulate them}
+% \author{Dennis Chen \\ proofprogram@gmail.com}
+% \date{\fileversion, v. \filedate\thanks{\url{https://github/com/chennisden/macrolist}}}
+%
+% \maketitle
+%
+% \begin{abstract}
+% The \textsf{macrolist} package allows you to create lists and manipulate them, with utilities such as \protect\listforeach\space and an implementation of arr.join() from Javascript. Contrary to the name of the package, non-macros and groups of macros can be put into an item of the list.
+% \end{abstract}
+%
+% \section{Usage}
+%
+% \DescribeMacro{\newlist}
+% To create a list, pass in |\newlist{listname}| to create a list with the name \textsf{listname}.
+%
+% The package checks that \textsf{listname} is not the name of another list, and will throw an error if another list \textsf{listname} has already been defined.
+%
+% \iffalse
+\newcommand{\newlist}[1]{
+    \ifcsname c@macrolist@#1\endcsname
+        \PackageError{macrolist}{The list '#1' is already defined}{}
+    \else
+        \newcounter{macrolist@#1}
+        \setcounter{macrolist@#1}{0}
+    \fi
+}
+% \fi
+%
+% \DescribeMacro{\addtolist}
+%
+% To add something to the list \textsf{listname}, pass in |\addtolist{listname}[position]{element}|, where \textsf{position} is an optional argument. If nothing is passed in for \textsf{position}, then by default \textsf{element} will be added to the end of the list.
+%
+% \iffalse
+
+\RequirePackage{pgffor}
+
+\newcommand{\addtolist}[1]{
+    \def\macro@currlist{#1}\@addtolist
+}
+%% We write \addtolist this way such that the optional argument will be positioned correctly
+\newcommand{\@addtolist}[2][]{
+    \stepcounter{macrolist@\macro@currlist}
+
+    \if\relax\detokenize{#1}\relax
+        \expandafter\def\csname macrolist@\macro@currlist\csname themacrolist@\macro@currlist\endcsname\endcsname{#2}
+    \else
+        \expandafter\ifnum\csname themacrolist@\macro@currlist\endcsname=#1
+            \expandafter\def\csname macrolist@\macro@currlist\csname themacrolist@\macro@currlist\endcsname\endcsname{#2}
+        \else
+            \foreach \macrolist@index in {\csname themacrolist@\macro@currlist\endcsname, ...,#1+1} {
+                \expandafter\let\csname macrolist@\macro@currlist\macrolist@index\endcsname
+            }
+            \expandafter\def\csname macrolist@\macro@currlist#1\endcsname{#2}
+        \fi
+    \fi
+}
+% \fi
+%
+% \DescribeMacro{\listelement}
+%
+% To execute the \textsf{i}th element of \textsf{listname}, write |\listelement{listname}{i}|. Note that \textit{lists are 1-indexed}, meaning the first element is numbered 1, the second element numbered 2, and so on.
+%
+% An error will be thrown if \textsf{listname} is not a defined list, if \textsf{i} is empty, or if \textsf{i} is greater than the size of the list.
+%
+% \iffalse
+\newcommand{\listelement}[2]{
+    \if\relax\detokenize{#1}\relax
+        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
+    \fi
+
+    \if\relax\detokenize{#2}\relax
+        \PackageError{macrolist}{No number has been passed into \protect\listelement}{Pass in a number to the second argument of \protect\listelement.}
+    \fi
+
+    \ifnum#2>\numexpr\csname themacrolist@#1\endcsname\relax
+        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of \protect\listelement\space is out of the bounds of list '#1'.}
+    \fi
+
+    \csname macrolist@#1#2\endcsname
+}
+% \fi
+%
+% \DescribeMacro{\protectedlistelement}
+%
+% To get the \textit{protected} \textsf{i}th element of \textsf{listname}, write |\protectedlistelement{listname}{i}|.
+% Because it is protected, nothing inside will be expanded and the definition of the element will be printed as-is.
+%
+% Once again, note that the list is 1-indexed.
+%
+% \iffalse
+\newcommand{\protectedlistelement}[2]{
+    \if\relax\detokenize{#1}
+        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
+    \fi
+
+    \if\relax\detokenize{#2}
+        \PackageError{macrolist}{No number has been passed into \protect\listelement}{Pass in a number to the second argument of \protect\listelement.}
+    \fi
+
+    \ifnum#2>\numexpr\csname themacrolist@#1\endcsname\relax
+        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of \protect\listelement\space is out of the bounds of list '#1'.}
+    \fi
+
+    \expandafter\protect\csname macrolist@#1#2\endcsname
+}
+% \fi
+%
+% \DescribeMacro{\listdelete}
+%
+%
+%
+% \DescribeMacro{\listclear}
+%
+% \DescribeMacro{\listsize}
+%
+% To get the size of a list, write |\listsize{listname}|.
+%
+% \iffalse
+\newcommand{\listsize}[1]{\csname themacrolist@#1\endcsname}
+% \fi
+%
+% \DescribeEnvironment{listforeach}
+%
+% To write a for each loop, write
+% \begin{verbatim}
+%\begin{listforeach}{listname}{\element}[begin][end]
+%   We can call \element in here.
+%\end{listforeach}
+% \end{verbatim}
+%
+%
+% Note that begin and end are optional arguments, and by default, they take the values \textsf{0} and |\listsize{listname}|. If you pass in \textsf{begin}, you must also pass in \textsf{end}.
+%
+% \iffalse
+\newenvironment{listforeach}[2]
+{
+    \def\macrolist@start{0}
+    \def\macrolist@end{\listsize{#1}}
+    \@listforeachi
+
+    \ifnum\numexpr\macrolist@start\relax>\listsize{#1}
+        \PackageError{macrolist}{The starting index of the loop is out of the bounds of list '#1'}{}
+    \fi
+
+    \ifnum\numexpr\macrolist@end\relax>\listsize{#1}
+        \PackageError{macrolist}{The ending index of the loop is out of the bounds of list '#1'}{}
+    \fi
+
+    \newcount\macrolist@count
+    \ifnum\numexpr\macrolist@start\relax<\numexpr\macrolist@end\relax
+        \macrolist@count=\macrolist@start
+    \else
+        \macrolist@count=\macrolist@end
+    \fi
+    \loop
+    \let#2\csname macrolist@#1\the\macrolist@count\endcsname
+}
+{
+    \ifnum\numexpr\macrolist@start\relax<\numexpr\macrolist@end\relax
+        \advance \macrolist@count 1
+        \ifnum \macrolist@count < \numexpr\macrolist@end+1\relax
+        \repeat
+    \else
+        \advance \macrolist@count -1
+        \ifnum \macrolist@count > \numexpr\macrolist@end-1\relax
+        \repeat
+    \fi
+}
+
+\newcommand{\@listforeachi}[1][]{
+    \if\relax\detokenize{#1}\relax
+    \else
+        \@listforeachii
+    \fi
+}
+
+\newcommand{\@listforeachii}[1][]{
+    \if\relax\detokenize{#1}\relax
+        \PackageError{macrolist}{You must either pass in both a starting and ending position or neither}{}
+    \else
+        \def\macrolist@end{#1}
+    \fi
+}
+% \fi
+%
+% \section{Example}
+% Here is a complete example using \textsf{macrolist}.
+%
+% \begin{verbatim}
+%
+% \end{verbatim}
