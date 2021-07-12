@@ -65,6 +65,33 @@
 }
 % \fi
 %
+% \DescribeMacro{\listelement}
+%
+% To execute the \textsf{i}th element of \textsf{listname}, write |\listelement{listname}{i}|. Note that \textit{lists are 1-indexed}, meaning the first element is numbered 1, the second element numbered 2, and so on.
+%
+% An error will be thrown if \textsf{listname} is not a defined list, if \textsf{i} is empty, or if \textsf{i} is greater than the size of the list.
+%
+% \iffalse
+\newcommand{\listelement}[2]{%
+    \macrolist@inbounds{#1}{#2}%
+    \csname macrolist@list@#1#2\endcsname%
+}
+% \fi
+%
+% \DescribeMacro{\protectedlistelement}
+%
+% To get the \textit{protected} \textsf{i}th element of \textsf{listname}, write |\protectedlistelement{listname}{i}|.
+% Because it is protected, nothing inside will be expanded and the definition of the element will be printed as-is.
+%
+% Once again, note that the list is 1-indexed.
+%
+% \iffalse
+\newcommand{\protectedlistelement}[2]{
+    \macrolist@inbounds{#1}{#2}
+    \expandafter\protect\csname macrolist@list@#1#2\endcsname
+}
+% \fi
+%
 % \DescribeMacro{\listadd}
 %
 % To add something to the list \textsf{listname}, pass in |\listadd{listname}[position]{element}|, where \textsf{position} is an optional argument. If nothing is passed in for \textsf{position}, then by default \textsf{element} will be added to the end of the list.
@@ -95,42 +122,35 @@
 }
 % \fi
 %
-% \DescribeMacro{\listelement}
+% \DescribeMacro{\listremove}
 %
-% To execute the \textsf{i}th element of \textsf{listname}, write |\listelement{listname}{i}|. Note that \textit{lists are 1-indexed}, meaning the first element is numbered 1, the second element numbered 2, and so on.
-%
-% An error will be thrown if \textsf{listname} is not a defined list, if \textsf{i} is empty, or if \textsf{i} is greater than the size of the list.
+% To remove an element in a list, write |\listremove{listname}{index}|.
 %
 % \iffalse
-\newcommand{\listelement}[2]{
-    \macrolist@inbounds{#1}{#2}
-    \csname macrolist@list@#1#2\endcsname
-}
-% \fi
-%
-% \DescribeMacro{\protectedlistelement}
-%
-% To get the \textit{protected} \textsf{i}th element of \textsf{listname}, write |\protectedlistelement{listname}{i}|.
-% Because it is protected, nothing inside will be expanded and the definition of the element will be printed as-is.
-%
-% Once again, note that the list is 1-indexed.
-%
-% \iffalse
-\newcommand{\protectedlistelement}[2]{
-    \macrolist@inbounds{#1}{#2}
-    \expandafter\protect\csname macrolist@list@#1#2\endcsname
-}
-% \fi
-%
-% \DescribeMacro{\listdelete}
-%
-% To delete an element in a list, write |\listdelete{listname}{index}|.
-%
-% \iffalse
-\newcommand{\listdelete}[2]{
+\newcommand{\listremove}[2]{
     \macrolist@inbounds{#1}{#2}
 
-    \addtocounter{\macrolist@list@#1}{-1}
+    \ifnum\numexpr#2\relax=\listsize{#1}
+    \else
+        \foreach \macrolist@index in {#2, ..., \the\numexpr\listsize{#1}-1\relax} {
+            \global\expandafter\let\csname macrolist@list@#1\macrolist@index\expandafter\endcsname\csname macrolist@list@#1\the\numexpr\macrolist@index+1\endcsname
+        }
+    \fi
+
+    \expandafter\let\csname macrolist@list@#1\listsize{#1}\endcsname\relax
+    \addtocounter{macrolist@list@#1}{-1}
+}
+% \fi
+%
+% \DescribeMacro{\listremovelast}
+%
+% To remove the last element in a list, write |\listremovelast{listremovelast}|.
+%
+% \iffalse
+\newcommand{\listremovelast}[1]{
+    \macrolist@exists{#1}
+    \expandafter\let\csname macrolist@list@#1\listsize{#1}\endcsname\relax
+    \addtocounter{macrolist@list@#1}{-1}
 }
 % \fi
 %
@@ -153,8 +173,8 @@
 % To get the size of a list, write |\listsize{listname}|.
 %
 % \iffalse
-\newcommand{\listsize}[1]{
-    \macrolist@exists{#1}
+\newcommand*{\listsize}[1]{%
+    \macrolist@exists{#1}%
     \csname themacrolist@list@#1\endcsname
 }
 % \fi
@@ -228,10 +248,10 @@
 % One internal macro we use is |\macrolist@exists{listname}|, which checks that \textsf{listname} exists. It throws an error otherwise.
 %
 %    \begin{macrocode}
-\newcommand{\macrolist@exists}[1]{
+\newcommand*{\macrolist@exists}[1]{%
     \ifcsname c@macrolist@list@#1\endcsname
     \else
-        \PackageError{macrolist}{The first argument of \protect\listelement\space is not a defined list}{Make sure you have defined the list before trying to operate on it.}
+        \PackageError{macrolist}{The first argument is not a defined list}{Make sure you have defined the list before trying to operate on it.}
     \fi
 }
 %    \end{macrocode}
@@ -240,14 +260,14 @@
 % \begin{macro}{\macrolist@inbounds}
 % We use |\macrolist@inbounds{listname}{index}| to check that first, \textsf{listname} is a defined list using |\macrolist@exists|, and second, that \textsf{index} is within bounds. It throws an error otherwise.
 %    \begin{macrocode}
-\newcommand{\macrolist@inbounds}[2]{
-    \macrolist@exists{#1}
-
+\newcommand*{\macrolist@inbounds}[2]{%
+    \macrolist@exists{#1}%
+    %
     \if\relax\detokenize{#2}
-        \PackageError{macrolist}{No number has been passed into \protect\listelement}{Pass in a number to the second argument of \protect\listelement.}
+        \PackageError{macrolist}{No number has been passed into the second argument of your command}{Pass in a number to the second argument of your command.}
     \fi
-
-    \ifnum#2>\listsize{#1}
-        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of \protect\listelement\space is out of the bounds of list '#1'.}
+    %
+    \ifnum\numexpr#2 \relax>\listsize{#1}
+        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of your command is out of the bounds of list '#1'.}
     \fi
 }
