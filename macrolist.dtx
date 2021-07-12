@@ -44,7 +44,7 @@
 % \maketitle
 %
 % \begin{abstract}
-% The \textsf{macrolist} package allows you to create lists and manipulate them, with utilities such as \protect\listforeach\space and an implementation of arr.join() from Javascript. Contrary to the name of the package, non-macros and groups of macros can be put into an item of the list.
+% The \textsf{macrolist} package allows you to create lists and manipulate them, with utilities such as |\listforeach| and an implementation of arr.join() from Javascript. Contrary to the name of the package, non-macros and groups of macros can be put into an item of the list.
 % \end{abstract}
 %
 % \section{Usage}
@@ -175,7 +175,7 @@
 % \end{verbatim}
 %
 %
-% Note that begin and end are optional arguments, and by default, they take the values \textsf{0} and |\listsize{listname}|. If you pass in \textsf{begin}, you must also pass in \textsf{end}.
+% Note that begin and end are optional arguments, and by default, they take the values \textsf{1} and |\listsize{listname}|. If you pass in \textsf{begin}, you must also pass in \textsf{end}.
 %
 % \iffalse
 \newcommand{\listforeach}[2]
@@ -291,7 +291,9 @@
 \newcommand*{\macrolist@exists}[1]{%
     \ifcsname c@macrolist@list@#1\endcsname
     \else
-        \PackageError{macrolist}{The first argument is not a defined list}{Make sure you have defined the list before trying to operate on it.}
+        \PackageError{macrolist}
+        {The first argument is not a defined list}
+        {Make sure you have defined the list before trying to operate on it.}
     \fi
 }
 %    \end{macrocode}
@@ -304,11 +306,16 @@
     \macrolist@exists{#1}%
     %
     \if\relax\detokenize{#2}
-        \PackageError{macrolist}{No number has been passed into the second argument of your command}{Pass in a number to the second argument of your command.}
+        \PackageError{macrolist}
+        {No number has been passed into the second argument of your command
+        }{Pass in a number to the second argument of your command.}
     \fi
     %
     \ifnum\numexpr#2 \relax>\listsize{#1}
-        \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of your command is out of the bounds of list '#1'.}
+        \PackageError{macrolist}
+        {Index out of bounds}
+        {The number you have passed in to the second argument of your command\MessageBreak
+        is out of the bounds of list '#1'.}
     \fi
 }
 %    \end{macrocode}
