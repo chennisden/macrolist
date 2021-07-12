@@ -74,21 +74,7 @@
 % \iffalse
 \newcommand{\listelement}[2]{%
     \macrolist@inbounds{#1}{#2}%
-    \csname macrolist@list@#1#2\endcsname%
-}
-% \fi
-%
-% \DescribeMacro{\protectedlistelement}
-%
-% To get the \textit{protected} \textsf{i}th element of \textsf{listname}, write |\protectedlistelement{listname}{i}|.
-% Because it is protected, nothing inside will be expanded and the definition of the element will be printed as-is.
-%
-% Once again, note that the list is 1-indexed.
-%
-% \iffalse
-\newcommand{\protectedlistelement}[2]{
-    \macrolist@inbounds{#1}{#2}
-    \expandafter\protect\csname macrolist@list@#1#2\endcsname
+    \csname macrolist@list@#1\the\numexpr #2\relax\endcsname%
 }
 % \fi
 %
@@ -239,6 +225,17 @@
 % \DescribeMacro{\listjoin}
 %
 % Executing |\listjoin{listname}{joiner}| returns all of the elements separated by \textsf{joiner}. This behaves like Javascript's \textsf{arr.join()}.
+%
+% \iffalse
+\newcommand{\listjoin}[2]{%
+    \ifnum\listsize{#1}>1
+        \listforeach{#1}{\macrolist@joinelement}[1][\listsize{#1}-1]{\macrolist@joinelement#2}
+    \fi
+    \ifnum\listsize{#1}>0
+        \listelement{#1}{\listsize{#1}}
+    \fi
+}
+% \fi
 %
 % \section{Example}
 % Here is a complete example using \textsf{macrolist}.
