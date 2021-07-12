@@ -86,10 +86,10 @@
 \newcommand{\listadd}[1]{
     \macrolist@exists{#1}
     \def\macrolist@currlist{#1}
-    \@listadd
+    \macrolist@listadd
 }
 %% We write \listadd this way such that the optional argument will be positioned correctly
-\newcommand{\@listadd}[2][]{
+\newcommand{\macrolist@listadd}[2][]{
     \stepcounter{macrolist@list@\macrolist@currlist}
 
     \if\relax\detokenize{#1}\relax
@@ -238,7 +238,7 @@
 % \fi
 %
 % \section{Example}
-% Here is a complete example using \textsf{macrolist}.
+% Here is the source code for a small document using \textsf{macrolist}.
 %
 % \begin{verbatim}
 %
