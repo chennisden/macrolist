@@ -204,8 +204,6 @@
 }
 
 \newcommand{\macrolist@listforeachi}[1][]{
-    Hi there. I have executed listforeachi.
-
     \if\relax\detokenize{#1}\relax
     \else
         \macrolist@listforeachii
@@ -213,8 +211,6 @@
 }
 
 \newcommand{\macrolist@listforeachii}[1][]{
-    Hi there. I have executed listforeachii.
-
     \if\relax\detokenize{#1}\relax
         \PackageError{macrolist}{You must either pass in both a starting and ending position or neither}{}
     \else
@@ -223,8 +219,6 @@
 }
 
 \newcommand{\macrolist@listforeachaction}[1]{
-    Hi there. I have executed listforeachaction.
-
     \macrolist@exists{\macrolist@listname}
 
     \ifnum\numexpr\macrolist@start\relax>\listsize{\macrolist@listname}
