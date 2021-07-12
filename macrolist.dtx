@@ -144,7 +144,7 @@
 %
 % \DescribeMacro{\listremovelast}
 %
-% To remove the last element in a list, write |\listremovelast{listremovelast}|.
+% To remove the last element in a list, write |\listremovelast{listname}|. This behaves like C++'s |pop_back|.
 %
 % \iffalse
 \newcommand{\listremovelast}[1]{
@@ -155,6 +155,8 @@
 % \fi
 %
 % \DescribeMacro{\listclear}
+%
+% To clear a list, write |\listclear{listname}|.
 %
 % \iffalse
 \newcommand{\listclear}[2]{
@@ -179,7 +181,7 @@
 }
 % \fi
 %
-% \DescribeEnvironment{listforeach}
+% \DescribeMacro{\listforeach}
 %
 % To write a for each loop, write
 % \begin{verbatim}
@@ -192,15 +194,18 @@
 % \iffalse
 \newcommand{\listforeach}[2]
 {
+    Hi there. I have executed listforeach
     \def\macrolist@start{0}
     \def\macrolist@end{\listsize{#1}}
     \def\macrolist@listname{#1}
-    \def\macrolist@element#2
+    \def\macrolist@element{#2}
     \macrolist@listforeachi
     \macrolist@listforeachaction
 }
 
 \newcommand{\macrolist@listforeachi}[1][]{
+    Hi there. I have executed listforeachi.
+
     \if\relax\detokenize{#1}\relax
     \else
         \macrolist@listforeachii
@@ -208,6 +213,8 @@
 }
 
 \newcommand{\macrolist@listforeachii}[1][]{
+    Hi there. I have executed listforeachii.
+
     \if\relax\detokenize{#1}\relax
         \PackageError{macrolist}{You must either pass in both a starting and ending position or neither}{}
     \else
@@ -216,6 +223,8 @@
 }
 
 \newcommand{\macrolist@listforeachaction}[1]{
+    Hi there. I have executed listforeachaction.
+
     \macrolist@exists{\macrolist@listname}
 
     \ifnum\numexpr\macrolist@start\relax>\listsize{\macrolist@listname}
@@ -227,11 +236,15 @@
     \fi
 
     \foreach \macrolist@index in {\macrolist@start, ..., \macrolist@end} {
-        \expandafter\let\csname \macrolist@element\expandafter\endcsname\csname macrolist@\macrolist@listname\the\macrolist@count\endcsname
+        \expandafter\expandafter\expandafter\let\expandafter\expandafter\macrolist@element\csname macrolist@\macrolist@listname\the\macrolist@count\endcsname
         #1
     }
 }
 % \fi
+%
+% \DescribeMacro{\listjoin}
+%
+% Executing |\listjoin{listname}{joiner}| returns all of the elements separated by \textsf{joiner}. This behaves like Javascript's \textsf{arr.join()}.
 %
 % \section{Example}
 % Here is a complete example using \textsf{macrolist}.
