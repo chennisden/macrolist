@@ -180,34 +180,41 @@
 % \iffalse
 \newcommand{\listforeach}[2]
 {
+    \def\macrolist@foreachstart{0} % Reset
+    % This is used to make optional arguments line up correctly
+
     \def\macrolist@start{1}
     \def\macrolist@end{\listsize{#1}}
     \def\macrolist@listname{#1}
     \def\macrolist@element{#2}
     \macrolist@listforeachi
-    \macrolist@listforeachaction
 }
 
 \newcommand{\macrolist@listforeachi}[1][]{
     \if\relax\detokenize{#1}\relax
     \else
-        \macrolist@listforeachii
+        \def\macrolist@start{#1}
+        \def\macrolist@foreachstart{1}
     \fi
+    \macrolist@listforeachii
 }
 
 \newcommand{\macrolist@listforeachii}[1][]{
     \if\relax\detokenize{#1}\relax
-        \PackageError{macrolist}{You must either pass in both a starting and ending position or neither}{}
+        \ifnum\macrolist@foreachstart=1
+            \PackageError{macrolist}{You must either pass in both a starting and ending position or neither}{}
+        \fi
     \else
         \def\macrolist@end{#1}
     \fi
+    \macrolist@listforeachaction
 }
 
 \newcommand{\macrolist@listforeachaction}[1]{
 
     \macrolist@exists{\macrolist@listname}
 
-    \ifnum\numexpr\macrolist@start\relax>\listsize{\macrolist@listname}
+    \ifnum\numexpr\macrolist@start\relax>\listsize{\macrolist@listname}%
         \PackageError{macrolist}{The starting index of the loop is out of the bounds of list '\macrolist@listname'}{}
     \fi
 
@@ -215,10 +222,10 @@
         \PackageError{macrolist}{The ending index of the loop is out of the bounds of list '\macrolist@listname'}{}
     \fi
 
-    \foreach \macrolist@index in {\macrolist@start, ..., \macrolist@end} {%
+    \foreach \macrolist@index in {\the\numexpr\macrolist@start\relax, ..., \the\numexpr\macrolist@end\relax} {%
         \expandafter\expandafter\expandafter\let\expandafter\expandafter\macrolist@element\csname macrolist@list@\macrolist@listname\macrolist@index\endcsname
         #1%
-    }
+    }%
 }
 % \fi
 %
@@ -229,10 +236,10 @@
 % \iffalse
 \newcommand{\listjoin}[2]{%
     \ifnum\listsize{#1}>1
-        \listforeach{#1}{\macrolist@joinelement}[1][\listsize{#1}-1]{\macrolist@joinelement#2}
+        \listforeach{#1}{\macrolist@joinelement}[1][\listsize{#1}-1]{\macrolist@joinelement#2}%
     \fi
     \ifnum\listsize{#1}>0
-        \listelement{#1}{\listsize{#1}}
+        \listelement{#1}{\listsize{#1}}%
     \fi
 }
 % \fi
@@ -241,7 +248,36 @@
 % Here is the source code for a small document using \textsf{macrolist}.
 %
 % \begin{verbatim}
+%\documentclass{article}
+%\usepackage{macrolist}
 %
+%\begin{document}
+%
+%\newlist{mylist}
+%\listadd{mylist}{Some text}
+%% List: Some text
+%
+%\newcommand\macro{This is a macro}
+%
+%\listadd{mylist}{\macro}
+%% List: Some text, \macro
+%
+%\listelement{mylist}{1}
+%% Prints out "Some text"
+%
+%\listadd{mylist}[1]{Element inserted into beginning}
+%% List: Element inserted into beginning, Some text, \macro
+%
+%\listremove{mylist}{1}
+%% List: Some text, \macro
+%
+%\listforeach{mylist}{\element}{We're printing out \textbf{\element}. }
+%% We're printing out \textbf{Some text}. We're printing out \textbf{\macro}.
+%
+%\listjoin{mylist}{, }
+%% Some text, \macro
+%
+%\end{document}
 % \end{verbatim}
 %
 % \section{Implementation details}
@@ -275,3 +311,8 @@
         \PackageError{macrolist}{Index out of bounds}{The number you have passed in to the second argument of your command is out of the bounds of list '#1'.}
     \fi
 }
+%    \end{macrocode}
+% \end{macro}
+%
+% \Finale
+\endinput
