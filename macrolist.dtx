@@ -195,7 +195,7 @@
 \newcommand{\listforeach}[2]
 {
     Hi there. I have executed listforeach
-    \def\macrolist@start{0}
+    \def\macrolist@start{1}
     \def\macrolist@end{\listsize{#1}}
     \def\macrolist@listname{#1}
     \def\macrolist@element{#2}
@@ -236,7 +236,7 @@
     \fi
 
     \foreach \macrolist@index in {\macrolist@start, ..., \macrolist@end} {
-        \expandafter\expandafter\expandafter\let\expandafter\expandafter\macrolist@element\csname macrolist@\macrolist@listname\the\macrolist@count\endcsname
+        \expandafter\expandafter\expandafter\let\expandafter\expandafter\macrolist@element\csname macrolist@\macrolist@listname\macrolist@index\endcsname
         #1
     }
 }
