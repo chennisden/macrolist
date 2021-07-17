@@ -4,3 +4,7 @@
 *.aux
 *.idx
 *.glo
+
+# Glossary files
+*.gls
+*.ilg
