@@ -34,14 +34,16 @@
 %</driver>
 % \fi
 % \changes{v1.0.1}{2021/07/16}{Make a couple of defs and lets global to prevent scoping issues}
-% \changes{v1.0.1}{2021/07/16}{Fix date in initial version change entry}
+% \changes{v1.0.1}{2021/07/16}{Add ``scope is always global'' to documentation}
+% \changes{v1.0.1}{2021/07/16}{Fix date in initial version changes entry}
+% \changes{v1.0.1}{2021/07/16}{Fix v. appearing in front of date in document title}
 % \changes{v1.0.0}{2021/07/12}{Initial version}
 %
 % \GetFileInfo{macrolist.sty}
 %
 % \title{\textsf{macrolist} -- Create lists of macros and manipulate them}
 % \author{Dennis Chen \\ proofprogram@gmail.com}
-% \date{\fileversion, v. \filedate\thanks{\url{https://github/com/chennisden/macrolist}}}
+% \date{\fileversion, \filedate\thanks{\url{https://github/com/chennisden/macrolist}}}
 %
 % \maketitle
 %
@@ -50,6 +52,8 @@
 % \end{abstract}
 %
 % \section{Usage}
+%
+% The scope of lists is always global. This seems to provide the most
 %
 % \DescribeMacro{\newlist}
 % To create a list, pass in |\newlist{listname}| to create a list with the name \textsf{listname}.
@@ -151,7 +155,7 @@
     \macrolist@inbounds{#1}{#2}
 
     \foreach \macrolist@index in {1, ..., \listsize{#1}} {
-        \expandafter\let\csname \macrolist@list@#1\macrolist@index\endcsname\relax
+        \global\expandafter\let\csname \macrolist@list@#1\macrolist@index\endcsname\relax
     }
 
     \setcounter{macrolist@list@#1}{0}
