@@ -33,6 +33,9 @@
 \end{document}
 %</driver>
 % \fi
+%
+% \changes{v1.0.2}{2021/07/17}{Print changelog in documentation}
+% \changes{v1.0.2}{2021/07/17}{Added comment markers to remove pars and fix spacing in listforeach}
 % \changes{v1.0.1}{2021/07/16}{Make a couple of defs and lets global to prevent scoping issues}
 % \changes{v1.0.1}{2021/07/16}{Add ``scope is always global'' to documentation}
 % \changes{v1.0.1}{2021/07/16}{Fix date in initial version changes entry}
@@ -185,49 +188,49 @@
 %
 % \iffalse
 \newcommand{\listforeach}[2]
-{
-    \def\macrolist@foreachstart{0} % Reset
+{%
+    \def\macrolist@foreachstart{0}% Reset
     % This is used to make optional arguments line up correctly
-
-    \def\macrolist@start{1}
-    \def\macrolist@end{\listsize{#1}}
-    \def\macrolist@listname{#1}
-    \def\macrolist@element{#2}
+%
+    \def\macrolist@start{1}%
+    \def\macrolist@end{\listsize{#1}}%
+    \def\macrolist@listname{#1}%
+    \def\macrolist@element{#2}%
     \macrolist@listforeachi
 }
 
-\newcommand{\macrolist@listforeachi}[1][]{
+\newcommand{\macrolist@listforeachi}[1][]{%
     \if\relax\detokenize{#1}\relax
     \else
-        \def\macrolist@start{#1}
-        \def\macrolist@foreachstart{1}
+        \def\macrolist@start{#1}%
+        \def\macrolist@foreachstart{1}%
     \fi
     \macrolist@listforeachii
 }
 
-\newcommand{\macrolist@listforeachii}[1][]{
+\newcommand{\macrolist@listforeachii}[1][]{%
     \if\relax\detokenize{#1}\relax
         \ifnum\macrolist@foreachstart=1
             \PackageError{macrolist}{You must either pass in both a starting and ending position or neither}{}
         \fi
     \else
-        \def\macrolist@end{#1}
+        \def\macrolist@end{#1}%
     \fi
     \macrolist@listforeachaction
 }
 
-\newcommand{\macrolist@listforeachaction}[1]{
-
-    \macrolist@exists{\macrolist@listname}
-
+\newcommand{\macrolist@listforeachaction}[1]{%
+%
+    \macrolist@exists{\macrolist@listname}%
+%
     \ifnum\numexpr\macrolist@start\relax>\listsize{\macrolist@listname}%
         \PackageError{macrolist}{The starting index of the loop is out of the bounds of list '\macrolist@listname'}{}
     \fi
-
+%
     \ifnum\numexpr\macrolist@end\relax>\listsize{\macrolist@listname}
         \PackageError{macrolist}{The ending index of the loop is out of the bounds of list '\macrolist@listname'}{}
     \fi
-
+%
     \foreach \macrolist@index in {\the\numexpr\macrolist@start\relax, ..., \the\numexpr\macrolist@end\relax} {%
         \expandafter\expandafter\expandafter\let\expandafter\expandafter\macrolist@element\csname macrolist@list@\macrolist@listname\macrolist@index\endcsname
         #1%
@@ -326,6 +329,8 @@
 }
 %    \end{macrocode}
 % \end{macro}
+%
+% \PrintChanges
 %
 % \Finale
 \endinput
