@@ -16,7 +16,7 @@
 %<*package>
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{macrolist}[2021/07/09 v1.0.0 Create lists of macros and perform operations on them]
+\ProvidesPackage{macrolist}[2021/07/16 v1.0.1 Create lists of macros and perform operations on them]
 
 \RequirePackage{pgffor}
 %</package>
@@ -33,7 +33,9 @@
 \end{document}
 %</driver>
 % \fi
-% \changes{v1.0.0}{2021/07/01}{Initial version}
+% \changes{v1.0.1}{2021/07/16}{Make a couple of defs and lets global to prevent scoping issues}
+% \changes{v1.0.1}{2021/07/16}{Fix date in initial version change entry}
+% \changes{v1.0.0}{2021/07/12}{Initial version}
 %
 % \GetFileInfo{macrolist.sty}
 %
@@ -93,16 +95,16 @@
     \stepcounter{macrolist@list@\macrolist@currlist}
 
     \if\relax\detokenize{#1}\relax
-        \expandafter\def\csname macrolist@list@\macrolist@currlist\listsize{\macrolist@currlist}\endcsname{#2}
+        \expandafter\gdef\csname macrolist@list@\macrolist@currlist\listsize{\macrolist@currlist}\endcsname{#2}
     \else
         \expandafter\ifnum\csname themacrolist@list@\macrolist@currlist\endcsname=#1
-            \expandafter\def\csname macrolist@list@\macrolist@currlist\listsize{\macrolist@currlist}\endcsname{#2}
+            \expandafter\gdef\csname macrolist@list@\macrolist@currlist\listsize{\macrolist@currlist}\endcsname{#2}
         \else
             \macrolist@inbounds{\macrolist@currlist}{#1}
             \foreach \macrolist@index in {\listsize{\macrolist@currlist}, ...,\the\numexpr #1+1\relax} {
                 \global\expandafter\let\csname macrolist@list@\macrolist@currlist\macrolist@index\expandafter\endcsname\csname macrolist@list@\macrolist@currlist\the\numexpr\macrolist@index-1\relax\endcsname
             }
-            \expandafter\def\csname macrolist@list@\macrolist@currlist#1\endcsname{#2}
+            \expandafter\gdef\csname macrolist@list@\macrolist@currlist#1\endcsname{#2}
         \fi
     \fi
 }
@@ -123,7 +125,7 @@
         }
     \fi
 
-    \expandafter\let\csname macrolist@list@#1\listsize{#1}\endcsname\relax
+    \global\expandafter\let\csname macrolist@list@#1\listsize{#1}\endcsname\relax
     \addtocounter{macrolist@list@#1}{-1}
 }
 % \fi
@@ -135,7 +137,7 @@
 % \iffalse
 \newcommand{\listremovelast}[1]{
     \macrolist@exists{#1}
-    \expandafter\let\csname macrolist@list@#1\listsize{#1}\endcsname\relax
+    \global\expandafter\let\csname macrolist@list@#1\listsize{#1}\endcsname\relax
     \addtocounter{macrolist@list@#1}{-1}
 }
 % \fi
