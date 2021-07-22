@@ -16,7 +16,7 @@
 %<*package>
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{macrolist}[2021/07/16 v1.0.1 Create lists of macros and perform operations on them]
+\ProvidesPackage{macrolist}[2021/07/22 v1.1.0 Create lists of macros and perform operations on them]
 
 \RequirePackage{pgffor}
 %</package>
@@ -71,6 +71,20 @@
     \else
         \newcounter{macrolist@list@#1}
         \setcounter{macrolist@list@#1}{0}
+    \fi
+}
+% \fi
+%
+% \changes{v1.1.0}{2021/07/22}{Add listexists}
+% \DescribeMacro{\listexists}
+% Writing |\listexists{listname}{true}{false}| will execute \textsf{true} if \textsf{listname} exists and \textsf{false} otherwise.
+%
+% \iffalse
+\newcommand{\listexists}[3]{
+    \ifcsname c@macrolist@list@#1\endcsname
+        #2
+    \else
+        #3
     \fi
 }
 % \fi
