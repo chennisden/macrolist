@@ -1,4 +1,4 @@
-# The LaTeX package macrolist - version 1.1.0 (2021/07/22)
+# The LaTeX package macrolist - version 1.1.1 (2021/07/23)
 
 > Copyright (C) 2021 Dennis Chen <proofprogram@gmail.com>
 >
