@@ -16,7 +16,7 @@
 %<*package>
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{macrolist}[2021/07/23 v1.1.1 Create lists of macros and perform operations on them]
+\ProvidesPackage{macrolist}[2021/07/23 v1.2.0 Create lists of macros and perform operations on them]
 
 \RequirePackage{pgffor}
 %</package>
@@ -56,8 +56,7 @@
 % \end{abstract}
 %
 % \section{Usage}
-%
-% The scope of lists is always global. This seems to provide the most
+% The scope of lists is always global. This provides the most consistency and functionality for developers in places that are usually local (part of a group), such as environments and loops.
 %
 % \DescribeMacro{\newlist}
 % To create a list, pass in |\newlist{listname}| to create a list with the name \textsf{listname}.
@@ -101,6 +100,8 @@
 % This works similar to \textsf{indexof} in almost any ordinary programming language. Write |\listindexof{list}{element}| to get the index of where \textsf{element} first appears in \textsf{list}. If it never does, then the macro will expand to \textsf{0}.
 %
 % The command uses |\ifx| instead of |\if|; this means that if you have |\macro| as an element with the definition \textsf{this is a macro} (assuming that \textsf{this is a macro} is not an element itself), then |\listindexof{listname}{this is a macro}| will expand to \textsf{0}.
+%
+% Because of the implementation of this macro, it can't actually be parsed as a number. (See the `Limitations' section for more information.) 
 % \iffalse
 \newcommand{\listindexof}[2]{%
     \def\macrolist@listindex{0}%
@@ -118,11 +119,19 @@
 %
 % \DescribeMacro{\listcontains}
 %
-% Writing |\listcontains{listname}{element}{true branch}{false branch}| checks whether list \textsf{listname} contains \textsf{element}, executing \textsf{true branch} if it does and \textsf{false branch} if it does not. (This is built off of |\listindexof|.)
+% Writing |\listcontains{listname}{element}{true branch}{false branch}| checks whether list \textsf{listname} contains \textsf{element}, executing \textsf{true branch} if it does and \textsf{false branch} if it does not.
 %
 % \iffalse
 \newcommand{\listcontains}[4]{%
-    \ifnum\listindexof{#1}{#2}>0\relax
+    \def\macrolist@listindex{0}%
+    \macrolist@exists{#1}%
+    \def\macrolist@el{#2}%
+    \listforeach{#1}{\macrolist@listindexel}[\listsize{#1}][1]{%
+        \ifx\macrolist@el\macrolist@listindexel
+            \xdef\macrolist@listindex{\macrolist@index}%
+        \fi
+    }%
+    \ifnum\macrolist@listindex>0\relax
         #3%
     \else
         #4%
@@ -332,6 +341,10 @@
 %
 %\end{document}
 % \end{verbatim}
+%
+% \section{Limitations}
+%
+% The |\listindexof| macro cannot be parsed as a number. This is because we have to compare each element of the list to the passed in element and requires storing the index in a macro, which requires some unexpandable macros. (This is why we do not directly use |\listindexof| when defining |\listcontains|.)
 %
 % \section{Implementation details}
 %
