@@ -94,6 +94,7 @@
     \csname macrolist@list@#1\the\numexpr #2\relax\endcsname%
 }
 % \fi
+% \changes{v1.2.1}{2021/07/25}{Fix behavior of listindexof and listcontains for empty lists}
 % \changes{v1.2.0}{2021/07/23}{Add listindexof and listcontains}
 % \DescribeMacro{\listindexof}
 %
@@ -106,12 +107,14 @@
 \newcommand{\listindexof}[2]{%
     \def\macrolist@listindex{0}%
     \macrolist@exists{#1}%
-    \def\macrolist@el{#2}%
-    \listforeach{#1}{\macrolist@listindexel}[\listsize{#1}][1]{%
-        \ifx\macrolist@el\macrolist@listindexel
-            \xdef\macrolist@listindex{\macrolist@index}%
-        \fi
-    }%
+    \ifnum\listsize{#1}>0\relax
+        \def\macrolist@el{#2}%
+        \listforeach{#1}{\macrolist@listindexel}[\listsize{#1}][1]{%
+            \ifx\macrolist@el\macrolist@listindexel
+                \xdef\macrolist@listindex{\macrolist@index}%
+            \fi
+        }%
+    \fi
     \macrolist@listindex%
     \let\macrolist@listindex\relax%
 }
@@ -125,12 +128,14 @@
 \newcommand{\listcontains}[4]{%
     \def\macrolist@listindex{0}%
     \macrolist@exists{#1}%
-    \def\macrolist@el{#2}%
-    \listforeach{#1}{\macrolist@listindexel}[\listsize{#1}][1]{%
-        \ifx\macrolist@el\macrolist@listindexel
-            \xdef\macrolist@listindex{\macrolist@index}%
-        \fi
-    }%
+    \ifnum\listsize{#1}>0\relax
+        \def\macrolist@el{#2}%
+        \listforeach{#1}{\macrolist@listindexel}[\listsize{#1}][1]{%
+            \ifx\macrolist@el\macrolist@listindexel
+                \xdef\macrolist@listindex{\macrolist@index}%
+            \fi
+        }%
+    \fi
     \ifnum\macrolist@listindex>0\relax
         #3%
     \else
