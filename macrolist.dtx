@@ -123,7 +123,6 @@
 % \fi
 %
 % \DescribeMacro{\macrolistcontains}
-%
 % Writing |\macrolistcontains{listname}{element}{true branch}{false branch}| checks whether list \textsf{listname} contains \textsf{element}, executing \textsf{true branch} if it does and \textsf{false branch} if it does not.
 %
 % \iffalse
@@ -147,7 +146,6 @@
 % \fi
 %
 % \DescribeMacro{\macrolistadd}
-%
 % To add something to the list \textsf{listname}, pass in |\macrolistadd{listname}[position]{element}|, where \textsf{position} is an optional argument. If nothing is passed in for \textsf{position}, then by default \textsf{element} will be added to the end of the list.
 %
 % \iffalse
@@ -177,11 +175,33 @@
 % \fi
 % \changes{v2.1.0}{2021/07/31}{Add macrolisteadd}
 % \DescribeMacro{\macrolisteadd}
-%
 % To fully expand |element| before adding it to list |listname|, pass in |\macrolisteadd{listname}[position]{element}|. This behaves similarly to |\edef|.
 %
+% \iffalse
+\newcommand{\macrolisteadd}[1]{
+    \macrolist@exists{#1}
+    \def\macrolist@currlist{#1}
+    \macrolist@listeadd
+}
+\newcommand{\macrolist@listeadd}[2][]{
+    \stepcounter{macrolist@list@\macrolist@currlist}
+
+    \if\relax\detokenize{#1}\relax
+        \expandafter\xdef\csname macrolist@list@\macrolist@currlist\macrolistsize{\macrolist@currlist}\endcsname{#2}
+    \else
+        \expandafter\ifnum\csname themacrolist@list@\macrolist@currlist\endcsname=#1
+            \expandafter\gdef\csname macrolist@list@\macrolist@currlist\macrolistsize{\macrolist@currlist}\endcsname{#2}
+        \else
+            \macrolist@inbounds{\macrolist@currlist}{#1}
+            \foreach \macrolist@index in {\macrolistsize{\macrolist@currlist}, ...,\the\numexpr #1+1\relax} {
+                \global\expandafter\let\csname macrolist@list@\macrolist@currlist\macrolist@index\expandafter\endcsname\csname macrolist@list@\macrolist@currlist\the\numexpr\macrolist@index-1\relax\endcsname
+            }
+            \expandafter\xdef\csname macrolist@list@\macrolist@currlist#1\endcsname{#2}
+        \fi
+    \fi
+}
+% \fi
 % \DescribeMacro{\macrolistremove}
-%
 % To remove an element in a list, write |\macrolistremove{listname}{index}|.
 %
 % \iffalse
@@ -201,7 +221,6 @@
 % \fi
 %
 % \DescribeMacro{\macrolistremovelast}
-%
 % To remove the last element in a list, write |\macrolistremovelast{listname}|. This behaves like C++'s |pop_back|.
 %
 % \iffalse
@@ -213,7 +232,6 @@
 % \fi
 %
 % \DescribeMacro{\macrolistclear}
-%
 % To clear a list, write |\macrolistclear{listname}|.
 %
 % \iffalse
@@ -229,7 +247,6 @@
 % \fi
 %
 % \DescribeMacro{\macrolistsize}
-%
 % To get the size of a list, write |\macrolistsize{listname}|.
 %
 % \iffalse
@@ -241,7 +258,6 @@
 %
 % \DescribeMacro{\macrolistforeach}
 % \changes{v1.1.1}{2021/07/23}{Fix foreach doc by removing incorrect begin}
-%
 % To write a for each loop, write
 % \begin{verbatim}
 %\macrolistforeach{listname}{\element}[begin][end]{action}
@@ -303,7 +319,6 @@
 % \fi
 %
 % \DescribeMacro{\macrolistjoin}
-%
 % Executing |\macrolistjoin{listname}{joiner}| returns all of the elements separated by \textsf{joiner}. This behaves like Javascript's \textsf{arr.join()}.
 %
 % \iffalse
