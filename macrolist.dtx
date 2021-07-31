@@ -16,7 +16,7 @@
 %<*package>
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{macrolist}[2021/07/29 v2.0.0 Create lists of macros and perform operations on them]
+\ProvidesPackage{macrolist}[2021/07/31 v2.1.0 Create lists of macros and perform operations on them]
 
 \RequirePackage{pgffor}
 %</package>
@@ -175,6 +175,10 @@
     \fi
 }
 % \fi
+% \changes{v2.1.0}{2021/07/31}{Add macrolisteadd}
+% \DescribeMacro{\macrolisteadd}
+%
+% To fully expand |element| before adding it to list |listname|, pass in |\macrolisteadd{listname}[position]{element}|. This behaves similarly to |\edef|.
 %
 % \DescribeMacro{\macrolistremove}
 %
